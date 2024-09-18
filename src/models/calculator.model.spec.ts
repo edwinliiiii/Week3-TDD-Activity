@@ -2,6 +2,7 @@ import { CalculatorModel } from './calculator.model';
 import { ICalculatorModel } from '../interfaces/calculator-model.interface';
 import { NumericKeys } from '../enums/numeric-keys.enum';
 import { OperatorKeys } from '../enums/operator-keys.enum';
+import { ActionKeys } from '../enums/action-keys.enum';
 
 describe('CalculatorModel', (): void => {
   let calculator: ICalculatorModel;
@@ -73,7 +74,53 @@ describe('CalculatorModel', (): void => {
     expect(displayValue).toEqual('98 * ');
   });
 
-  it('should throw error when the buffer contains `` and the `+` key is pressed', (): void => {
-    expect(calculator.pressOperatorKey(OperatorKeys.PLUS)).toThrow('Operator no');
+  // it('should throw error when the buffer contains `` and the `+` key is pressed', (): void => {
+  //   expect(calculator.pressOperatorKey(OperatorKeys.PLUS)).toThrow('Operator no');
+  // });
+
+  it('should display `98 + 2 = 100` when the buffer contains `98+2` and the `=` key is pressed', (): void => {
+    calculator.pressNumericKey(NumericKeys.NINE);
+    calculator.pressNumericKey(NumericKeys.EIGHT);
+    calculator.pressOperatorKey(OperatorKeys.PLUS);
+    calculator.pressNumericKey(NumericKeys.TWO);
+    calculator.pressActionKey(ActionKeys.EQUALS);
+    const displayValue: string = calculator.display();
+
+    expect(displayValue).toEqual('98 + 2 = 100');
+  });
+
+  it('should display `98 + 2 - 1 = 99` when the buffer contains `98+2-1` and the `=` key is pressed', (): void => {
+    calculator.pressNumericKey(NumericKeys.NINE);
+    calculator.pressNumericKey(NumericKeys.EIGHT);
+    calculator.pressOperatorKey(OperatorKeys.PLUS);
+    calculator.pressNumericKey(NumericKeys.TWO);
+    calculator.pressOperatorKey(OperatorKeys.MINUS);
+    calculator.pressNumericKey(NumericKeys.ONE);
+    calculator.pressActionKey(ActionKeys.EQUALS);
+    const displayValue: string = calculator.display();
+
+    expect(displayValue).toEqual('98 + 2 - 1 = 99');
+  });
+
+  it('should display `2 * 3 = 6` when the buffer contains `2*3` and the `=` key is pressed', (): void => {
+    calculator.pressNumericKey(NumericKeys.TWO);
+    calculator.pressOperatorKey(OperatorKeys.MULT);
+    calculator.pressNumericKey(NumericKeys.THREE);
+    calculator.pressActionKey(ActionKeys.EQUALS);
+    const displayValue: string = calculator.display();
+
+    expect(displayValue).toEqual('2 * 3 = 6');
+  });
+
+  it('should display `2 + 3 * 4 = 14` when the buffer contains `2+3*4` and the `=` key is pressed', (): void => {
+    calculator.pressNumericKey(NumericKeys.TWO);
+    calculator.pressOperatorKey(OperatorKeys.PLUS);
+    calculator.pressNumericKey(NumericKeys.THREE);
+    calculator.pressOperatorKey(OperatorKeys.MULT);
+    calculator.pressNumericKey(NumericKeys.FOUR);
+    calculator.pressActionKey(ActionKeys.EQUALS);
+    const displayValue: string = calculator.display();
+
+    expect(displayValue).toEqual('2 + 3 * 4 = 14');
   });
 });

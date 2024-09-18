@@ -20,56 +20,70 @@ export class CalculatorModel implements ICalculatorModel {
   }
 
   public pressActionKey(key: ActionKeys): void {
-    this._buffer = this._buffer + ' ' + key.valueOf() + ' ';
-  }
-
-  private evaluate(): number {
-    const keyArr: string[] = this._buffer.split(' ');
-    const operatorMap: Map<String, () => number> = {
-      '+': (a: number, b: number) => a + b,
-      '-': (a: number, b: number) => a - b,
-      '*': (a: number, b: number) => a * b,
-      '/': (a: number, b: number) => a / b,
-    };
-
-    //
-    var simpleArr: string[] = [];
-    for (var i = 0; i < keyArr.length; i++) {
-      if (keyArr[i] === OperatorKeys.DIV || keyArr[i] === OperatorKeys.MULT) {
-        const val: number = operatorMap[keyArr[i]](parseInt(keyArr[i--]), parseInt(keyArr[i++]));
-        simpleArr.push(String(val));
-      } else {
-        simpleArr.push(keyArr[i]);
-      }
-
-      i++;
+    if (key === ActionKeys.EQUALS) {
+      this._buffer = this._buffer + ' = ' + this.evaluate().toString();
+      return;
     }
 
-    for (var i = 0; i < simpleArr.length; i++) {
-      if (simpleArr[i] === OperatorKeys.PLUS) {
-        operatorMap[OperatorKeys.PLUS](parseInt(simpleArr[i--]), parseInt(simpleArr[i++]));
-      } else if (simpleArr[i] === OperatorKeys.MINUS) {
-        operatorMap[OperatorKeys.MINUS](parseInt(simpleArr[i--]), parseInt(simpleArr[i++]));
-      }
-      i++;
+    if (key === ActionKeys.CLEAR) {
+      this._buffer = '';
+      return;
     }
 
-    return 1;
+    this._buffer = this._buffer + key.valueOf();
   }
 
   public display(): string {
     return this._buffer;
   }
+
+  private evaluate(): number {
+    const keys: string[] = this._buffer.split(' ');
+    const values: number[] = [];
+    const operators: string[] = [];
+
+    let i: number = 0;
+    while (i < keys.length) {
+      const key: string = keys[i];
+
+      if (!isNaN(Number(key))) {
+        values.push(parseInt(key, 10));
+      } else if (Object.values(OperatorKeys).includes(key as OperatorKeys)) {
+        while (operators.length > 0 && this.hasPrecedence(key, operators[operators.length - 1])) {
+          values.push(this.applyOperation(operators.pop(), values.pop(), values.pop()));
+        }
+        operators.push(key);
+      }
+      i++;
+    }
+
+    // Apply the remaining operators
+    while (operators.length > 0) {
+      values.push(this.applyOperation(operators.pop(), values.pop(), values.pop()));
+    }
+
+    return values.pop();
+  }
+
+  private hasPrecedence(currentOp: string, previousOp: string): boolean {
+    if ((currentOp === '*' || currentOp === '/') && (previousOp === '+' || previousOp === '-')) {
+      return false;
+    }
+    return true;
+  }
+
+  private applyOperation(operator: string, b: number, a: number): number {
+    switch (operator) {
+      case '+':
+        return a + b;
+      case '-':
+        return a - b;
+      case '*':
+        return a * b;
+      case '/':
+        return a / b;
+      default:
+        throw new Error(`Invalid operator: ${operator}`);
+    }
+  }
 }
-
-// 2 + 3 - 1
-// 2 + 3 / 2 * 2 + 5
-
-// [5, ]
-
-// [2, +, 3, /, 2, *, 2, +, 5]
-// [2, +, 1, *, 2, +, 5]
-
-// for i in nums:
-//     if i === enum.DIVIS || i === enum.MULT:
-//
